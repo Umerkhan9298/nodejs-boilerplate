@@ -5,20 +5,20 @@ const saltRound = 10;
 
 exports.registerUser = async (req, res) => {
   const obj = {};
-  obj.first_name = req.body.first_name;
-  obj.last_name = req.body.last_name;
-  obj.email = req.body.email;
+  obj.first_name = req.body.obj.first_name;
+  obj.last_name = req.body.obj.last_name;
+  obj.email = req.body.obj.email;
 
   const token = jwt.sign(obj, 'NYT"Ob)eP[4gWmG-(4uo"S(9oK=HTp');
 
   obj.token = token;
 
-  const decryptedPassword = crypto.hashSync(req.body.password, saltRound);
+  const decryptedPassword = crypto.hashSync(req.body.obj.password, saltRound);
   obj.password = decryptedPassword;
 
   const newUser = await new User(obj);
 
-  const existingUser = await User.findOne({ email: req.body.email });
+  const existingUser = await User.findOne({ email: req.body.obj.email });
 
   if (existingUser === null) {
     newUser.save((err, user) => {
@@ -29,20 +29,32 @@ exports.registerUser = async (req, res) => {
       }
     });
   } else {
-    console.log("Email is already in use.");
+    res.status(400).json({
+      message: "Email is already in use.",
+    });
   }
 };
 
 exports.loginUser = async (req, res) => {
-  const user = await User.findOne({
-    email: req.body.email,
-  });
-  const match = crypto.compareSync(req.body.password, user.password);
-  if (!user) {
-    console.log("User not found!");
-  } else if (!match) {
-    console.log("Password is not valid!");
+  if (req.body.obj.email) {
+    const user = await User.findOne({
+      email: req.body.obj.email,
+    });
+    const match = crypto.compareSync(req.body.obj.password, user.password);
+    if (!user) {
+      res.status(400).json({
+        message: "User not found!",
+      });
+    } else if (!match) {
+      res.status(400).json({
+        message: "Password is not valid!",
+      });
+    } else {
+      res.json(user);
+    }
   } else {
-    res.send(user);
+    res.status(400).json({
+      message: "Email is missing",
+    });
   }
 };

@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const morgan = require("morgan");
 
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -19,12 +20,13 @@ mongoose
 //middlewares
 app.use(bodyParser.json());
 app.use(cors());
+app.use(morgan("dev"));
 
 app.get("/api", (req, res) => res.status(200).send("Api hit succesfully"));
 
 app.post("/signup", registerUser);
 
-app.get("/login", loginUser);
+app.post("/login", loginUser);
 
 const port = process.env.PORT || 5000;
 
